@@ -8,17 +8,20 @@ services:
     container_name: coopetraes_app
     restart: always
     ports:
-      - "${PORT:-3000}:3000"
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-coopetraes}?schema=public
-      - REDIS_URL=redis://redis:6379
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-supersecretkeychangeinproduction123}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      - UPLOAD_DIR=/app/uploads
-      - STORAGE_PATH=/app/storage
-      - SEED_ON_START=${SEED_ON_START:-false}
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://postgres:coopetraes_secure_pass_2026@db:5432/coopetraes?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      CACHE_PROVIDER: "REDIS"
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
+      AUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
+      NEXTAUTH_URL: "https://app.coopetraes.com"
+      NEXT_PUBLIC_APP_URL: "https://app.coopetraes.com"
+      UPLOAD_DIR: "/app/uploads"
+      STORAGE_PATH: "/app/storage"
+      SEED_ON_START: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -27,6 +30,8 @@ services:
     volumes:
       - uploads_data:/app/uploads
       - storage_data:/app/storage
+    networks:
+      - coopetraes_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/login"]
       interval: 30s
@@ -39,15 +44,15 @@ services:
     container_name: coopetraes_db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-      POSTGRES_DB: ${DB_NAME:-coopetraes}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: coopetraes_secure_pass_2026
+      POSTGRES_DB: coopetraes
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - coopetraes_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-coopetraes}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coopetraes"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,10 +61,10 @@ services:
     image: redis:7-alpine
     container_name: coopetraes_redis
     restart: always
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - coopetraes_net
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -71,3 +76,7 @@ volumes:
   redis_data:
   uploads_data:
   storage_data:
+
+networks:
+  coopetraes_net:
+    driver: bridge
