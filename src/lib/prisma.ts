@@ -7,15 +7,17 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const createPrismaClient = () => {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString =
+        process.env.DATABASE_URL ||
+        "postgresql://postgres:postgres@localhost:5432/coopetraes?schema=public";
 
-    if (!connectionString) {
-        throw new Error("DATABASE_URL is not set");
+    try {
+        const pool = new pg.Pool({ connectionString });
+        const adapter = new PrismaPg(pool);
+        return new PrismaClient({ adapter });
+    } catch {
+        return new PrismaClient();
     }
-
-    const pool = new pg.Pool({ connectionString });
-    const adapter = new PrismaPg(pool);
-    return new PrismaClient({ adapter });
 };
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

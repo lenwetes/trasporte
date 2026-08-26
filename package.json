@@ -9,7 +9,7 @@
         "lint": "eslint",
         "format": "prettier --write .",
         "test": "vitest run",
-        "prepare": "husky",
+        "prepare": "husky || true",
         "monitor": "tsx scripts/start-monitoring.ts",
         "worker:simit": "tsx src/workers/simit-worker.ts"
     },
