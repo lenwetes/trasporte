@@ -5,14 +5,13 @@ echo "🚀 Iniciando contenedor Coopetraes..."
 
 # Ejecutar migraciones de base de datos si DATABASE_URL está definido
 if [ -n "$DATABASE_URL" ]; then
-  echo "📦 Aplicando migraciones de Prisma..."
-  # migrate deploy para entornos con migraciones formales
-  # Si falla, usar db push (sin --skip-generate que fue removido en Prisma v6+)
-  npx prisma migrate deploy || npx prisma db push --accept-data-loss || echo "⚠️ Advertencia: No se pudieron aplicar migraciones automáticamente."
+  echo "📦 Aplicando migraciones de Prisma v6..."
+  # Usar versión exacta de Prisma para evitar incompatibilidades con v7
+  npx prisma@6.19.2 migrate deploy || npx prisma@6.19.2 db push --accept-data-loss || echo "⚠️ No se pudieron aplicar migraciones."
 
   if [ "$SEED_ON_START" = "true" ]; then
-    echo "🌱 Ejecutando seed de base de datos..."
-    npx prisma db seed || echo "⚠️ Seed omitido o sin configuración."
+    echo "🌱 Ejecutando seed..."
+    npx prisma@6.19.2 db seed || echo "⚠️ Seed omitido."
   fi
 fi
 

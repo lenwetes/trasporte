@@ -11,11 +11,11 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      # PostgreSQL externo de Coolify (hostname interno de la red Coolify)
+      # PostgreSQL externo de Coolify
       DATABASE_URL: "postgres://postgres:Eduardo0429..@postgres:5432/postgres?schema=public"
-      # Redis externo de Coolify (hostname interno de la red Coolify)
-      REDIS_URL: "redis://default:Eduardo0429..@redis:6379/0"
-      CACHE_PROVIDER: "REDIS"
+      # Redis deshabilitado - la app usa caché en memoria como fallback
+      # REDIS_URL: ""
+      CACHE_PROVIDER: "MEMORY"
       # Autenticación
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
