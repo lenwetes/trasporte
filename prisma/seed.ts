@@ -126,7 +126,7 @@ async function main() {
     await cleanDatabase();
 
     // 3. Credenciales iniciales
-    const adminPassword = await argon2.hash("admin");
+    const adminPassword = await argon2.hash("admin123");
 
     // 4. Intento de carga de Datos Maestros de Producción (SI EXISTE)
     const { seedProductionData } = await import("./seed/production");
@@ -158,10 +158,10 @@ async function main() {
     await seedFUEC(prisma);
 
     // 6. Creación Usuario Administrador Inicial
-    console.log("👤 Creando cuenta del Administrador (admin / admin)...");
+    console.log("👤 Creando cuenta del Administrador (admin@coopetraes.com / admin123)...");
     await prisma.usuario.create({
         data: {
-            email: "admin@admin.com",
+            email: "admin@coopetraes.com",
             nombres: "Administrador",
             apellidos: "Sistema",
             passwordHash: adminPassword,
@@ -195,8 +195,8 @@ async function main() {
 
     console.log("\n✨ INSTALACIÓN LIMPIA COMPLETADA (SIN DATOS DE PRUEBA)");
     console.log("------------------------------------------");
-    console.log("Usuario: admin@admin.com");
-    console.log("Password: admin");
+    console.log("Usuario: admin@coopetraes.com");
+    console.log("Password: admin123");
     console.log("------------------------------------------\n");
 }
 

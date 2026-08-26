@@ -8,17 +8,17 @@ export const dynamic = "force-dynamic";
 export async function GET() {
     try {
         console.log("🛠️ Inicializando/Verificando cuenta Admin...");
-        const adminPasswordHash = await hash("admin");
+        const adminPasswordHash = await hash("admin123");
 
         const adminUser = await prisma.usuario.upsert({
-            where: { email: "admin@admin.com" },
+            where: { email: "admin@coopetraes.com" },
             update: {
                 passwordHash: adminPasswordHash,
                 activo: true,
                 rol: Rol.ADMIN,
             },
             create: {
-                email: "admin@admin.com",
+                email: "admin@coopetraes.com",
                 nombres: "Administrador",
                 apellidos: "Sistema",
                 passwordHash: adminPasswordHash,
@@ -49,8 +49,8 @@ export async function GET() {
             success: true,
             message: "Usuario administrador configurado correctamente.",
             credentials: {
-                email: "admin@admin.com",
-                password: "admin",
+                email: "admin@coopetraes.com",
+                password: "admin123",
                 role: adminUser.rol,
                 activo: adminUser.activo,
             },

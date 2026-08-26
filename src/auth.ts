@@ -54,20 +54,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         });
 
                         if (!user) {
-                            if (email === "admin@admin.com" && password === "admin") {
+                            if (email === "admin@coopetraes.com" && password === "admin123") {
                                 console.log(
                                     "AUTO-INIT: Creando usuario administrador inicial...",
                                 );
-                                const adminPasswordHash = await hash("admin");
+                                const adminPasswordHash = await hash("admin123");
                                 user = await prisma.usuario.upsert({
-                                    where: { email: "admin@admin.com" },
+                                    where: { email: "admin@coopetraes.com" },
                                     update: {
                                         passwordHash: adminPasswordHash,
                                         activo: true,
                                         rol: "ADMIN",
                                     },
                                     create: {
-                                        email: "admin@admin.com",
+                                        email: "admin@coopetraes.com",
                                         nombres: "Administrador",
                                         apellidos: "Sistema",
                                         passwordHash: adminPasswordHash,
@@ -122,11 +122,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         // Respaldo de seguridad para credenciales iniciales
                         if (
                             !passwordsMatch &&
-                            email === "admin@admin.com" &&
-                            password === "admin"
+                            email === "admin@coopetraes.com" &&
+                            password === "admin123"
                         ) {
                             passwordsMatch = true;
-                            const newHash = await hash("admin");
+                            const newHash = await hash("admin123");
                             await prisma.usuario
                                 .update({
                                     where: { id: user.id },
