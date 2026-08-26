@@ -11,10 +11,10 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      # Base de datos PostgreSQL (recurso externo en Coolify)
-      DATABASE_URL: "postgres://postgres:Eduardo0429..@4jbmth8idiqmqoohjowmxbuf:5432/postgres?schema=public"
-      # Redis (recurso externo en Coolify)
-      REDIS_URL: "redis://default:Eduardo0429..@xcjfn8d0qyoupv7ligz7jco9:6379/0"
+      # PostgreSQL externo de Coolify (hostname interno de la red Coolify)
+      DATABASE_URL: "postgres://postgres:Eduardo0429..@postgres:5432/postgres?schema=public"
+      # Redis externo de Coolify (hostname interno de la red Coolify)
+      REDIS_URL: "redis://default:Eduardo0429..@redis:6379/0"
       CACHE_PROVIDER: "REDIS"
       # Autenticación
       AUTH_TRUST_HOST: "true"
@@ -25,7 +25,6 @@ services:
       # Almacenamiento
       UPLOAD_DIR: "/app/uploads"
       STORAGE_PATH: "/app/storage"
-      # Seed automático al iniciar (crea admin y datos base)
       SEED_ON_START: "true"
     volumes:
       - uploads_data:/app/uploads
