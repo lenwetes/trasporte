@@ -1,0 +1,1162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                    String                    @id @default(uuid())
+  nombres               String
+  apellidos             String
+  tipoDocumento         TipoDocumento             @default(CC) @map("tipo_documento")
+  numeroDocumento       String?                   @unique @map("numero_documento")
+  fechaNacimiento       DateTime?                 @map("fecha_nacimiento")
+  lugarNacimiento       String?                   @map("lugar_nacimiento")
+  estadoCivil           String?                   @map("estado_civil")
+  direccion             String?
+  municipio             String?                   @default("Sincelejo")
+  telefono              String?
+  email                 String?                   @unique
+  passwordHash          String                    @map("password_hash")
+  rol                   Rol                       @default(CONDUCTOR)
+  idFotoPerfil          String?                   @unique @map("id_foto_perfil")
+  activo                Boolean                   @default(true)
+  eliminadoEn           DateTime?                 @map("deleted_at")
+  creadoEn              DateTime                  @default(now()) @map("created_at")
+  actualizadoEn         DateTime                  @updatedAt @map("updated_at")
+  numeroLicencia        String?                   @map("numero_licencia")
+  ultimoLogin           DateTime?                 @map("ultimo_login")
+  ultimaRevisionSimit   DateTime?                 @map("ultima_revision_simit")
+  version               Int                       @default(0)
+  idDocumentoIdentidad  String?                   @unique @map("id_documento_identidad")
+  margenConfianza       Decimal                   @default(0.0) @map("margen_confianza") @db.Decimal(12, 2)
+  accionesRealizadas    AuditLog[]                @relation("ActorAudit")
+  certificados          Certificado[]
+  consultasSIMIT        ConsultaSIMIT[]
+  licencias             DetalleLicencia[]
+  entregasDotacion      EntregaDotacion[]
+  eventosCalendario     EventoCalendario[]
+  examenesMedicos       ExamenMedico[]
+  experienciasLaborales ExperienciaLaboral[]
+  historiaOperatividad  HistorialEstadoVehiculo[] @relation("AuditUser")
+  hojaVida              HojaVida?
+  notificaciones        Notificacion[]
+  novedadesAsociadas    Novedad[]                 @relation("ConductorNovedad")
+  obligaciones          ObligacionFinanciera[]    @relation("ObligacionesUsuario")
+  planillasFUEC1        PlanillaFUEC[]            @relation("Conductor1")
+  planillasFUEC2        PlanillaFUEC[]            @relation("Conductor2")
+  planillasFUEC3        PlanillaFUEC[]            @relation("Conductor3")
+  preoperacionales      Preoperacional[]
+  prestamos             Prestamo[]                @relation("UsuarioPrestamo")
+  referenciasPersonales ReferenciaPersonal[]
+  siniestrosAsociados   Siniestro[]               @relation("ConductorSiniestro")
+  transaccionesCreadas  Transaccion[]             @relation("TransaccionesCreadas")
+  transaccionesTercero  Transaccion[]             @relation("TransaccionesTercero")
+  documentoIdentidad    RepositorioArchivo?       @relation("DocumentoIdentidad", fields: [idDocumentoIdentidad], references: [id])
+  fotoPerfil            RepositorioArchivo?       @relation("FotoPerfil", fields: [idFotoPerfil], references: [id])
+  vehiculosPropiedad    Vehiculo[]                @relation("PropietarioVehiculo")
+  vinculaciones         Vinculacion[]
+
+  @@index([nombres, apellidos])
+  @@index([rol])
+  @@index([activo])
+  @@map("usuarios")
+}
+
+model Notificacion {
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  titulo    String
+  mensaje   String
+  tipo      String   @default("INFO")
+  leida     Boolean  @default(false)
+  vinculo   String?
+  creadoEn  DateTime @default(now()) @map("created_at")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([leida])
+  @@index([creadoEn])
+  @@map("notificaciones")
+}
+
+model HojaVida {
+  id                         String   @id @default(uuid())
+  usuarioId                  String   @unique @map("usuario_id")
+  rh                         String?
+  eps                        String?
+  arl                        String?
+  fondoPensiones             String?  @map("fondo_pensiones")
+  contactoEmergenciaNombre   String?  @map("contacto_emergencia_nombre")
+  contactoEmergenciaTelefono String?  @map("contacto_emergencia_telefono")
+  creadoEn                   DateTime @default(now()) @map("created_at")
+  actualizadoEn              DateTime @updatedAt @map("updated_at")
+  fondoCesantias             String?  @map("fondo_cesantias")
+  perfilProfesional          String?  @map("perfil_profesional")
+  usuario                    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("hojas_vida_usuarios")
+}
+
+model DetalleLicencia {
+  id               String              @id @default(uuid())
+  usuarioId        String              @map("usuario_id")
+  categoria        String
+  servicio         String              @default("PARTICULAR")
+  fechaVencimiento DateTime            @map("fecha_vencimiento")
+  activo           Boolean             @default(true)
+  creadoEn         DateTime            @default(now()) @map("created_at")
+  actualizadoEn    DateTime            @updatedAt @map("updated_at")
+  archivoId        String?             @map("archivo_id")
+  archivo          RepositorioArchivo? @relation("ArchivoLicencia", fields: [archivoId], references: [id])
+  usuario          Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, activo])
+  @@index([fechaVencimiento])
+  @@map("detalles_licencias_usuarios")
+}
+
+model ExperienciaLaboral {
+  id             String              @id @default(uuid())
+  empresa        String
+  cargo          String
+  jefeInmediato  String?             @map("jefe_inmediato")
+  telefonoJefe   String?             @map("telefono_jefe")
+  fechaInicio    DateTime?           @map("fecha_inicio")
+  fechaFin       DateTime?           @map("fecha_fin")
+  tiempoLaborado String?             @map("tiempo_laborado")
+  usuarioId      String              @map("usuario_id")
+  creadoEn       DateTime            @default(now()) @map("created_at")
+  actualizadoEn  DateTime            @updatedAt @map("updated_at")
+  archivoId      String?             @map("archivo_id")
+  archivo        RepositorioArchivo? @relation("ArchivoExperiencia", fields: [archivoId], references: [id])
+  usuario        Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("experiencia_laboral")
+}
+
+model ReferenciaPersonal {
+  id            String   @id @default(uuid())
+  nombre        String
+  ocupacion     String?
+  telefono      String?
+  usuarioId     String   @map("usuario_id")
+  creadoEn      DateTime @default(now()) @map("created_at")
+  actualizadoEn DateTime @updatedAt @map("updated_at")
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("referencias_personales")
+}
+
+model Certificado {
+  id               String              @id @default(uuid())
+  nombre           String
+  institucion      String?
+  fechaEmision     DateTime?           @map("fecha_emision")
+  fechaVencimiento DateTime?           @map("fecha_vencimiento")
+  usuarioId        String              @map("usuario_id")
+  archivoId        String?             @map("archivo_id")
+  creadoEn         DateTime            @default(now()) @map("created_at")
+  actualizadoEn    DateTime            @updatedAt @map("updated_at")
+  categoria        String?             @default("OTRO")
+  archivo          RepositorioArchivo? @relation("ArchivoCertificado", fields: [archivoId], references: [id])
+  usuario          Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("certificados_usuarios")
+}
+
+model Vehiculo {
+  id                    String                    @id @default(uuid())
+  placa                 String                    @unique
+  marca                 String?
+  modalidad             Modalidad?
+  propietario           String?
+  creadoEn              DateTime                  @default(now()) @map("created_at")
+  actualizadoEn         DateTime                  @updatedAt @map("updated_at")
+  activo                Boolean                   @default(true)
+  eliminadoEn           DateTime?                 @map("deleted_at")
+  anho                  Int?
+  capacidadPuestos      Int?                      @map("capacidad_puestos")
+  cilindraje            String?
+  clase                 ClaseVehiculo             @default(OTRO)
+  color                 String?
+  lugarExpedicion       String?                   @map("lugar_expedicion")
+  modelo                String?
+  numeroChasis          String?                   @map("numero_chasis")
+  numeroMotor           String?                   @map("numero_motor")
+  peso                  String?
+  propietarioId         String?                   @map("propietario_id")
+  kilometrajeActual     Int?                      @default(0) @map("kilometraje_actual")
+  estadoAlertas         EstadoAlerta              @default(OK) @map("estado_alertas")
+  version               Int                       @default(0)
+  bloqueadoManualmente  Boolean                   @default(false) @map("bloqueado_manualmente")
+  estadoOperativo       EstadoOperativo           @default(EVALUANDO) @map("estado_operativo")
+  razonBloqueo          String?                   @map("razon_bloqueo")
+  numeroInterno         String?                   @map("numero_interno")
+  justificacionOverride String?                   @map("justificacion_override")
+  overrideActivo        Boolean                   @default(false) @map("override_activo")
+  consultasSIMIT        ConsultaSIMIT[]
+  documentos            DocumentoVehiculo[]
+  historialEstados      HistorialEstadoVehiculo[]
+  hojaVida              HojaVidaVehiculo?
+  mantenimientos        MantenimientoRealizado[]
+  novedades             Novedad[]                 @relation("VehiculoNovedad")
+  obligaciones          ObligacionFinanciera[]    @relation("ObligacionesVehiculo")
+  ordenesServicio       OrdenServicio[]
+  planillasFUEC         PlanillaFUEC[]            @relation("VehiculoFUEC")
+  preoperacionales      Preoperacional[]
+  siniestros            Siniestro[]               @relation("VehiculoSiniestro")
+  propietarioUser       Usuario?                  @relation("PropietarioVehiculo", fields: [propietarioId], references: [id])
+  vinculaciones         Vinculacion[]
+
+  @@index([propietarioId])
+  @@index([clase])
+  @@index([modalidad])
+  @@index([activo])
+  @@index([creadoEn])
+  @@map("vehiculos")
+}
+
+model HojaVidaVehiculo {
+  id             String    @id @default(uuid())
+  vehiculoId     String    @unique @map("vehiculo_id")
+  observaciones  String?
+  ultimaRevision DateTime? @map("ultima_revision")
+  creadoEn       DateTime  @default(now()) @map("created_at")
+  actualizadoEn  DateTime  @updatedAt @map("updated_at")
+  vehiculo       Vehiculo  @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@map("hojas_vida_vehiculos")
+}
+
+model HistorialEstadoVehiculo {
+  id             String          @id @default(uuid())
+  vehiculoId     String          @map("vehiculo_id")
+  estadoAnterior EstadoOperativo @map("estado_anterior")
+  estadoNuevo    EstadoOperativo @map("estado_nuevo")
+  razon          String?
+  userId         String          @map("user_id")
+  creadoEn       DateTime        @default(now()) @map("created_at")
+  usuario        Usuario         @relation("AuditUser", fields: [userId], references: [id])
+  vehiculo       Vehiculo        @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId])
+  @@map("historial_estados_vehiculo")
+}
+
+model Vinculacion {
+  id          String    @id @default(uuid())
+  conductorId String    @map("conductor_id")
+  vehiculoId  String    @map("vehiculo_id")
+  fechaInicio DateTime  @default(now()) @map("fecha_inicio")
+  fechaFin    DateTime? @map("fecha_fin")
+  activo      Boolean   @default(true)
+  conductor   Usuario   @relation(fields: [conductorId], references: [id], onDelete: Cascade)
+  vehiculo    Vehiculo  @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId, activo])
+  @@index([conductorId, activo])
+  @@map("vinculaciones")
+}
+
+model DocumentoVehiculo {
+  id               String              @id @default(uuid())
+  vehiculoId       String              @map("vehiculo_id")
+  tipo             String
+  fechaVencimiento DateTime            @map("fecha_vencimiento")
+  archivoId        String?             @unique @map("archivo_id")
+  creadoEn         DateTime            @default(now()) @map("created_at")
+  actualizadoEn    DateTime            @updatedAt @map("updated_at")
+  estadoAlerta     EstadoAlerta        @default(OK) @map("estado_alerta")
+  archivo          RepositorioArchivo? @relation(fields: [archivoId], references: [id])
+  vehiculo         Vehiculo            @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId, tipo])
+  @@index([fechaVencimiento])
+  @@index([estadoAlerta])
+  @@map("documentos_vehiculo")
+}
+
+model RepositorioArchivo {
+  id                   String                  @id @default(uuid())
+  nombreOriginal       String                  @map("nombre_original")
+  nombreUnico          String                  @unique @map("nombre_unico")
+  rutaAbsoluta         String                  @map("ruta_absoluta")
+  tipoMime             String                  @map("tipo_mime")
+  tamano               Int
+  creadoEn             DateTime                @default(now()) @map("created_at")
+  siniestroId          String?                 @map("siniestro_id")
+  transaccionId        String?                 @map("transaccion_id")
+  certificados         Certificado[]           @relation("ArchivoCertificado")
+  licencias            DetalleLicencia[]       @relation("ArchivoLicencia")
+  documento            DocumentoVehiculo?
+  examenMedico         ExamenMedico?           @relation("ArchivoExamen")
+  experiencias         ExperienciaLaboral[]    @relation("ArchivoExperiencia")
+  mantenimiento        MantenimientoRealizado? @relation("FacturaMantenimiento")
+  comprobanteOrden     OrdenServicio?          @relation("ComprobanteOrden")
+  siniestro            Siniestro?              @relation("FotosSiniestro", fields: [siniestroId], references: [id], onDelete: Cascade)
+  transaccion          Transaccion?            @relation("ArchivosTransaccion", fields: [transaccionId], references: [id])
+  documentoIdentidadDe Usuario?                @relation("DocumentoIdentidad")
+  fotoPerfilDe         Usuario?                @relation("FotoPerfil")
+
+  @@index([nombreOriginal])
+  @@map("repositorio_archivos")
+}
+
+model ReglaAlerta {
+  id               String   @id @default(uuid())
+  tipoDocumento    String   @unique @map("tipo_documento")
+  diasAnticipacion Int      @default(30) @map("dias_anticipacion")
+  activo           Boolean  @default(true)
+  creadoEn         DateTime @default(now()) @map("created_at")
+  actualizadoEn    DateTime @updatedAt @map("updated_at")
+
+  @@map("reglas_alertas")
+}
+
+model Siniestro {
+  id            String                  @id @default(uuid())
+  fecha         DateTime
+  lugar         String
+  reporteHechos String                  @map("reporte_hechos")
+  gravedad      GravedadSiniestro       @default(SOLO_DANOS)
+  conductorId   String                  @map("conductor_id")
+  vehiculoId    String                  @map("vehiculo_id")
+  creadoEn      DateTime                @default(now()) @map("created_at")
+  actualizadoEn DateTime                @updatedAt @map("updated_at")
+  eliminadoEn   DateTime?               @map("deleted_at")
+  estado        EstadoSiniestro         @default(PENDIENTE)
+  investigacion InvestigacionSiniestro?
+  fotos         RepositorioArchivo[]    @relation("FotosSiniestro")
+  conductor     Usuario                 @relation("ConductorSiniestro", fields: [conductorId], references: [id])
+  vehiculo      Vehiculo                @relation("VehiculoSiniestro", fields: [vehiculoId], references: [id])
+
+  @@index([vehiculoId, fecha])
+  @@index([conductorId])
+  @@index([estado])
+  @@map("siniestros")
+}
+
+model InvestigacionSiniestro {
+  id             String    @id @default(uuid())
+  siniestroId    String    @unique @map("siniestro_id")
+  fecha          DateTime  @default(now())
+  participantes  String?
+  analisisCausas String    @map("analisis_causas")
+  planAccion     String    @map("plan_accion")
+  conclusiones   String
+  diasPerdidos   Int       @default(0) @map("dias_perdidos")
+  costoEstimado  Float?    @map("costo_estimado")
+  siniestro      Siniestro @relation(fields: [siniestroId], references: [id], onDelete: Cascade)
+
+  @@map("investigaciones_siniestros")
+}
+
+model Novedad {
+  id              String         @id @default(uuid())
+  tipo            TipoNovedad
+  descripcion     String
+  fecha           DateTime
+  monto           Float?
+  estado          EstadoNovedad  @default(PENDIENTE)
+  conductorId     String?        @map("conductor_id")
+  vehiculoId      String?        @map("vehiculo_id")
+  creadoEn        DateTime       @default(now()) @map("created_at")
+  actualizadoEn   DateTime       @updatedAt @map("updated_at")
+  eliminadoEn     DateTime?      @map("deleted_at")
+  consultaSimitId String?        @map("consulta_simit_id")
+  conductor       Usuario?       @relation("ConductorNovedad", fields: [conductorId], references: [id])
+  consultaSimit   ConsultaSIMIT? @relation("NovedadSIMIT", fields: [consultaSimitId], references: [id])
+  vehiculo        Vehiculo?      @relation("VehiculoNovedad", fields: [vehiculoId], references: [id])
+
+  @@index([vehiculoId, fecha])
+  @@index([conductorId])
+  @@index([estado])
+  @@map("novedades")
+}
+
+model ConfiguracionGlobal {
+  id                       String          @id @default("default")
+  nombreEmpresa            String          @default("COOPETRAES") @map("nombre_empresa")
+  logoUrl                  String?         @map("logo_url")
+  colorPrimario            String?         @default("#10b981") @map("color_primario")
+  moduloSiniestros         Boolean         @default(true) @map("modulo_siniestros")
+  moduloReportes           Boolean         @default(true) @map("modulo_reportes")
+  moduloConductores        Boolean         @default(true) @map("modulo_conductores")
+  smtpHost                 String?         @map("smtp_host")
+  smtpPort                 Int?            @map("smtp_port")
+  smtpUser                 String?         @map("smtp_user")
+  smtpPass                 String?         @map("smtp_pass")
+  creadoEn                 DateTime        @default(now()) @map("created_at")
+  actualizadoEn            DateTime        @updatedAt @map("updated_at")
+  direccion                String?
+  email                    String?
+  logoLocalPath            String?         @map("logo_local_path")
+  representanteLegal       String?         @map("representante_legal")
+  telefono                 String?
+  modoMantenimiento        Boolean         @default(false) @map("modo_mantenimiento")
+  sessionTimeout           Int             @default(480) @map("session_timeout")
+  diaCorteMensual          Int             @default(5) @map("dia_corte_mensual")
+  montoCuotaAdministracion Decimal         @default(80000) @map("monto_cuota_administracion") @db.Decimal(12, 2)
+  porcentajeMoraDiaria     Decimal         @default(0) @map("porcentaje_mora_diaria") @db.Decimal(5, 2)
+  cuentaBancosId           String?         @map("cuenta_bancos_id")
+  cuentaCajaId             String?         @map("cuenta_caja_id")
+  cuentaCobrarId           String?         @map("cuenta_cobrar_id")
+  cuentaGastosId           String?         @map("cuenta_gastos_id")
+  cuentaIngresosId         String?         @map("cuenta_ingresos_id")
+  umbralBloqueoMora        Decimal         @default(200000) @map("umbral_bloqueo_mora") @db.Decimal(12, 2)
+  nit                      String?
+  nombrePresidente         String?         @map("nombre_presidente")
+  cuentaPrestamosId        String?         @map("cuenta_prestamos_id")
+  costoBaseFuec            Decimal         @default(30000) @map("costo_base_fuec") @db.Decimal(12, 2)
+  dashboardTheme           String          @default("command-classic") @map("dashboard_theme")
+  cuentaBancos             CuentaContable? @relation("ConfigBancos", fields: [cuentaBancosId], references: [id])
+  cuentaCaja               CuentaContable? @relation("ConfigCaja", fields: [cuentaCajaId], references: [id])
+  cuentaCobrar             CuentaContable? @relation("ConfigCobrar", fields: [cuentaCobrarId], references: [id])
+  cuentaGastos             CuentaContable? @relation("ConfigGastos", fields: [cuentaGastosId], references: [id])
+  cuentaIngresos           CuentaContable? @relation("ConfigIngresos", fields: [cuentaIngresosId], references: [id])
+  cuentaPrestamos          CuentaContable? @relation("ConfigPrestamos", fields: [cuentaPrestamosId], references: [id])
+
+  @@map("configuracion_global")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  actorId     String      @map("actor_id")
+  accion      AccionAudit
+  entidadTipo String      @map("entidad_tipo")
+  entidadId   String?     @map("entidad_id")
+  detalles    String?
+  ipAddress   String?     @map("ip_address")
+  creadoEn    DateTime    @default(now()) @map("created_at")
+  userAgent   String?     @map("user_agent")
+  actor       Usuario     @relation("ActorAudit", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([creadoEn])
+  @@index([entidadTipo, entidadId])
+  @@map("audit_logs")
+}
+
+model PlanMantenimiento {
+  id              String                   @id @default(uuid())
+  nombre          String
+  descripcion     String?
+  frecuencia      FrecuenciaMantenimiento  @default(KILOMETROS)
+  kmIntervalo     Int?                     @map("km_intervalo")
+  mesesIntervalo  Int?                     @map("meses_intervalo")
+  creadoEn        DateTime                 @default(now()) @map("created_at")
+  actualizadoEn   DateTime                 @updatedAt @map("updated_at")
+  mantenimientos  MantenimientoRealizado[]
+  ordenesServicio OrdenServicio[]
+
+  @@map("planes_mantenimiento")
+}
+
+model MantenimientoRealizado {
+  id              String              @id @default(uuid())
+  vehiculoId      String              @map("vehiculo_id")
+  planId          String              @map("plan_id")
+  fecha           DateTime            @default(now())
+  kilometraje     Int
+  costo           Float?
+  observaciones   String?
+  archivoId       String?             @unique @map("archivo_id")
+  creadoEn        DateTime            @default(now()) @map("created_at")
+  actualizadoEn   DateTime            @updatedAt @map("updated_at")
+  ordenServicioId String?             @unique @map("orden_servicio_id")
+  eliminadoEn     DateTime?           @map("deleted_at")
+  factura         RepositorioArchivo? @relation("FacturaMantenimiento", fields: [archivoId], references: [id])
+  ordenServicio   OrdenServicio?      @relation(fields: [ordenServicioId], references: [id])
+  plan            PlanMantenimiento   @relation(fields: [planId], references: [id])
+  vehiculo        Vehiculo            @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId, fecha])
+  @@index([planId])
+  @@map("mantenimientos_realizados")
+}
+
+model OrdenServicio {
+  id                     String                  @id @default(uuid())
+  codigo                 String                  @unique
+  vehiculoId             String                  @map("vehiculo_id")
+  planId                 String                  @map("plan_id")
+  fechaCreacion          DateTime                @default(now()) @map("created_at")
+  fechaVencimiento       DateTime?               @map("fecha_vencimiento")
+  estado                 EstadoOrdenServicio     @default(PENDIENTE)
+  observaciones          String?
+  comprobanteId          String?                 @unique @map("comprobante_id")
+  kilometrajeReportado   Int?                    @map("kilometraje_reportado")
+  costoReportado         Float?                  @map("costo_reportado")
+  observacionesConductor String?                 @map("observaciones_conductor")
+  fechaComprobante       DateTime?               @map("fecha_comprobante")
+  motivoRechazo          String?                 @map("motivo_rechazo")
+  eliminadoEn            DateTime?               @map("deleted_at")
+  version                Int                     @default(0)
+  transaccionId          String?                 @unique @map("transaccion_id")
+  mantenimientoRealizado MantenimientoRealizado?
+  comprobante            RepositorioArchivo?     @relation("ComprobanteOrden", fields: [comprobanteId], references: [id])
+  plan                   PlanMantenimiento       @relation(fields: [planId], references: [id])
+  transaccion            Transaccion?            @relation("OrdenTransaccion", fields: [transaccionId], references: [id])
+  vehiculo               Vehiculo                @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId, estado])
+  @@index([planId])
+  @@index([fechaCreacion])
+  @@map("ordenes_servicio")
+}
+
+model ExamenMedico {
+  id               String              @id @default(uuid())
+  conductorId      String              @map("conductor_id")
+  tipo             TipoExamen
+  fechaRealizacion DateTime            @map("fecha_realizacion")
+  fechaVencimiento DateTime?           @map("fecha_vencimiento")
+  entidadMedica    String              @map("entidad_medica")
+  concepto         ConceptoMedico
+  restricciones    String?
+  archivoId        String?             @unique @map("archivo_id")
+  creadoEn         DateTime            @default(now()) @map("created_at")
+  actualizadoEn    DateTime            @updatedAt @map("updated_at")
+  archivo          RepositorioArchivo? @relation("ArchivoExamen", fields: [archivoId], references: [id])
+  conductor        Usuario             @relation(fields: [conductorId], references: [id], onDelete: Cascade)
+
+  @@index([conductorId])
+  @@index([fechaRealizacion])
+  @@map("examenes_medicos")
+}
+
+model EntregaDotacion {
+  id            String       @id @default(uuid())
+  conductorId   String       @map("conductor_id")
+  fechaEntrega  DateTime     @default(now()) @map("fecha_entrega")
+  items         Json
+  observaciones String?
+  firmaDigital  String?      @map("firma_digital")
+  creadoEn      DateTime     @default(now()) @map("created_at")
+  actualizadoEn DateTime     @updatedAt @map("updated_at")
+  transaccionId String?      @unique @map("transaccion_id")
+  valorTotal    Decimal?     @map("valor_total") @db.Decimal(12, 2)
+  conductor     Usuario      @relation(fields: [conductorId], references: [id], onDelete: Cascade)
+  transaccion   Transaccion? @relation("DotacionTransaccion", fields: [transaccionId], references: [id])
+
+  @@index([conductorId])
+  @@map("entregas_dotacion")
+}
+
+model Preoperacional {
+  id            String                  @id @default(uuid())
+  vehiculoId    String                  @map("vehiculo_id")
+  conductorId   String                  @map("conductor_id")
+  fecha         DateTime                @default(now())
+  kilometraje   Int
+  resultado     EstadoPreoperacional
+  observaciones String?
+  firmaDigital  String?                 @map("firma_digital")
+  creadoEn      DateTime                @default(now()) @map("created_at")
+  actualizadoEn DateTime                @updatedAt @map("updated_at")
+  detalles      DetallePreoperacional[]
+  conductor     Usuario                 @relation(fields: [conductorId], references: [id], onDelete: Cascade)
+  vehiculo      Vehiculo                @relation(fields: [vehiculoId], references: [id], onDelete: Cascade)
+
+  @@index([vehiculoId, fecha])
+  @@index([conductorId])
+  @@map("preoperacionales")
+}
+
+model DetallePreoperacional {
+  id               String          @id @default(uuid())
+  preoperacionalId String          @map("preoperacional_id")
+  item             String
+  estado           Boolean
+  criticidad       NivelCriticidad
+  observacion      String?
+  preoperacional   Preoperacional  @relation(fields: [preoperacionalId], references: [id], onDelete: Cascade)
+
+  @@index([preoperacionalId])
+  @@map("detalles_preoperacional")
+}
+
+model CuentaContable {
+  id                String                @id @default(uuid())
+  codigo            String                @unique
+  nombre            String
+  naturaleza        NaturalezaCuenta
+  tipo              TipoCuenta
+  permiteMovimiento Boolean               @default(true)
+  activa            Boolean               @default(true)
+  creadoEn          DateTime              @default(now()) @map("created_at")
+  actualizadoEn     DateTime              @updatedAt @map("updated_at")
+  nivel             Int                   @default(1)
+  padreId           String?               @map("padre_id")
+  saldo             Decimal               @default(0) @db.Decimal(15, 2)
+  asientos          AsientoContable[]
+  conceptos         ConceptoFinanciero[]
+  configBancos      ConfiguracionGlobal[] @relation("ConfigBancos")
+  configCaja        ConfiguracionGlobal[] @relation("ConfigCaja")
+  configCobrar      ConfiguracionGlobal[] @relation("ConfigCobrar")
+  configGastos      ConfiguracionGlobal[] @relation("ConfigGastos")
+  configIngresos    ConfiguracionGlobal[] @relation("ConfigIngresos")
+  configPrestamos   ConfiguracionGlobal[] @relation("ConfigPrestamos")
+  padre             CuentaContable?       @relation("JerarquiaCuentas", fields: [padreId], references: [id])
+  hijos             CuentaContable[]      @relation("JerarquiaCuentas")
+  reglasCredito     ReglaContable[]       @relation("ReglaCredito")
+  reglasDebito      ReglaContable[]       @relation("ReglaDebito")
+
+  @@map("cuentas_contables")
+}
+
+model ConceptoFinanciero {
+  id              String          @id @default(uuid())
+  nombre          String
+  tipo            TipoTransaccion
+  cuentaId        String          @map("cuenta_id")
+  requiereTercero Boolean         @default(false)
+  valorPorDefecto Decimal?        @map("valor_por_defecto") @db.Decimal(12, 2)
+  activo          Boolean         @default(true)
+  creadoEn        DateTime        @default(now()) @map("created_at")
+  actualizadoEn   DateTime        @updatedAt @map("updated_at")
+  cuenta          CuentaContable  @relation(fields: [cuentaId], references: [id])
+
+  @@map("conceptos_financieros")
+}
+
+model ReglaContable {
+  id              String         @id @default(uuid())
+  evento          String         @unique
+  descripcion     String?
+  cuentaDebitoId  String         @map("cuenta_debito_id")
+  cuentaCreditoId String         @map("cuenta_credito_id")
+  activo          Boolean        @default(true)
+  cuentaCredito   CuentaContable @relation("ReglaCredito", fields: [cuentaCreditoId], references: [id])
+  cuentaDebito    CuentaContable @relation("ReglaDebito", fields: [cuentaDebitoId], references: [id])
+
+  @@map("reglas_contables")
+}
+
+model Transaccion {
+  id                String                 @id @default(uuid())
+  consecutivo       Int                    @default(autoincrement())
+  fecha             DateTime               @default(now())
+  descripcion       String
+  tipo              TipoTransaccion
+  soporteUrl        String?
+  creadoPorId       String                 @map("creado_por_id")
+  terceroId         String?                @map("tercero_id")
+  metaVehiculoId    String?                @map("meta_vehiculo_id")
+  creadoEn          DateTime               @default(now()) @map("created_at")
+  actualizadoEn     DateTime               @updatedAt @map("updated_at")
+  cufe              String?
+  documentoNumero   String?                @map("documento_numero")
+  esElectronica     Boolean                @default(false) @map("es_electronica")
+  numeroComprobante String?                @unique @map("numero_comprobante")
+  proveedorId       String?                @map("proveedor_id")
+  resolucionId      String?                @map("resolucion_id")
+  fechaOperacion    DateTime               @default(now()) @map("fecha_operacion")
+  metodoPago        MetodoPago             @default(EFECTIVO) @map("metodo_pago")
+  asientos          AsientoContable[]
+  dotacion          EntregaDotacion?       @relation("DotacionTransaccion")
+  obligaciones      ObligacionFinanciera[] @relation("ObligacionTransaccion")
+  ordenServicio     OrdenServicio?         @relation("OrdenTransaccion")
+  planillaFUEC      PlanillaFUEC?          @relation("FUECTransaccion")
+  archivos          RepositorioArchivo[]   @relation("ArchivosTransaccion")
+  creadoPor         Usuario                @relation("TransaccionesCreadas", fields: [creadoPorId], references: [id])
+  proveedor         Proveedor?             @relation("TransaccionesProveedor", fields: [proveedorId], references: [id])
+  tercero           Usuario?               @relation("TransaccionesTercero", fields: [terceroId], references: [id])
+
+  @@index([fecha])
+  @@index([tipo])
+  @@index([creadoPorId])
+  @@index([numeroComprobante])
+  @@map("transacciones")
+}
+
+model AsientoContable {
+  id            String         @id @default(uuid())
+  transaccionId String         @map("transaccion_id")
+  cuentaId      String         @map("cuenta_id")
+  debito        Decimal        @default(0) @db.Decimal(12, 2)
+  credito       Decimal        @default(0) @db.Decimal(12, 2)
+  creadoEn      DateTime       @default(now()) @map("created_at")
+  cuenta        CuentaContable @relation(fields: [cuentaId], references: [id])
+  transaccion   Transaccion    @relation(fields: [transaccionId], references: [id], onDelete: Cascade)
+
+  @@index([transaccionId])
+  @@index([cuentaId])
+  @@map("asientos_contables")
+}
+
+model ObligacionFinanciera {
+  id                  String           @id @default(uuid())
+  usuarioId           String           @map("usuario_id")
+  vehiculoId          String?          @map("vehiculo_id")
+  tipo                TipoObligacion
+  periodo             DateTime
+  fechaVence          DateTime         @map("fecha_vence")
+  montoInicial        Decimal          @map("monto_inicial") @db.Decimal(12, 2)
+  saldoPendiente      Decimal          @map("saldo_pendiente") @db.Decimal(12, 2)
+  estado              EstadoObligacion
+  transaccionOrigenId String?          @map("transaccion_origen_id")
+  creadoEn            DateTime         @default(now()) @map("created_at")
+  actualizadoEn       DateTime         @updatedAt @map("updated_at")
+  transaccionOrigen   Transaccion?     @relation("ObligacionTransaccion", fields: [transaccionOrigenId], references: [id])
+  usuario             Usuario          @relation("ObligacionesUsuario", fields: [usuarioId], references: [id])
+  vehiculo            Vehiculo?        @relation("ObligacionesVehiculo", fields: [vehiculoId], references: [id])
+  planillaFUEC        PlanillaFUEC?    @relation("ObligacionPlanilla")
+
+  @@index([usuarioId, estado])
+  @@index([periodo])
+  @@index([fechaVence])
+  @@map("obligaciones_financieras")
+}
+
+model ContratoEmpresa {
+  id                   String         @id @default(uuid())
+  numeroContrato       String         @map("numero_contrato")
+  cliente              String
+  objeto               String?
+  fechaInicio          DateTime       @map("fecha_inicio")
+  fechaFin             DateTime       @map("fecha_fin")
+  activo               Boolean        @default(true)
+  valorTotal           Decimal?       @map("valor_total") @db.Decimal(15, 2)
+  creadoEn             DateTime       @default(now()) @map("created_at")
+  actualizadoEn        DateTime       @updatedAt @map("updated_at")
+  consecutivoNumerico  Int            @default(autoincrement()) @map("consecutivo_numerico")
+  esInterno            Boolean        @default(false) @map("es_interno")
+  nitCliente           String?        @map("nit_cliente")
+  responsableCedula    String?        @map("responsable_cedula")
+  responsableDireccion String?        @map("responsable_direccion")
+  responsableNombre    String?        @map("responsable_nombre")
+  responsableTelefono  String?        @map("responsable_telefono")
+  planillasFUEC        PlanillaFUEC[]
+
+  @@map("contratos_empresa")
+}
+
+model ClienteFrecuente {
+  id            String   @id @default(uuid())
+  nombre        String
+  nit           String?
+  creadoEn      DateTime @default(now()) @map("created_at")
+  actualizadoEn DateTime @updatedAt @map("updated_at")
+
+  @@map("clientes_frecuentes")
+}
+
+model ResponsableFrecuente {
+  id            String   @id @default(uuid())
+  nombre        String
+  cedula        String?
+  telefono      String?
+  direccion     String?
+  creadoEn      DateTime @default(now()) @map("created_at")
+  actualizadoEn DateTime @updatedAt @map("updated_at")
+
+  @@map("responsables_frecuentes")
+}
+
+model ResolucionFUEC {
+  id                String         @id @default(uuid())
+  numeroResolucion  String         @unique @map("numero_resolucion")
+  rangoDesde        Int            @map("rango_desde")
+  rangoHasta        Int            @map("rango_hasta")
+  actual            Int            @map("actual")
+  habilitada        Boolean        @default(true)
+  fechaExpedicion   DateTime       @map("fecha_expedicion")
+  fechaVencimiento  DateTime?      @map("fecha_vencimiento")
+  creadoEn          DateTime       @default(now()) @map("created_at")
+  actualizadoEn     DateTime       @updatedAt @map("updated_at")
+  anioHabilitacion  String         @default("18") @map("anio_habilitacion")
+  codigoTerritorial String         @default("223") @map("codigo_territorial")
+  resolucionEmpresa String         @default("0041") @map("resolucion_empresa")
+  planillasFUEC     PlanillaFUEC[]
+
+  @@map("resoluciones_fuec")
+}
+
+model PlanillaFUEC {
+  id             String                @id @default(uuid())
+  consecutivo    String                @unique
+  numeroFUEC     Int                   @map("numero_fuec")
+  contratoId     String                @map("contrato_id")
+  vehiculoId     String                @map("vehiculo_id")
+  resolucionId   String                @map("resolucion_id")
+  transaccionId  String?               @unique @map("transaccion_id")
+  ruta           Json
+  fechaInicio    DateTime              @map("fecha_inicio")
+  fechaFin       DateTime              @map("fecha_fin")
+  pagoValor      Decimal               @default(0) @map("pago_valor") @db.Decimal(12, 2)
+  tokenQR        String                @unique @map("token_qr")
+  estado         EstadoFUEC            @default(ACTIVO)
+  creadoEn       DateTime              @default(now()) @map("created_at")
+  actualizadoEn  DateTime              @updatedAt @map("updated_at")
+  conductor1Id   String                @map("conductor1_id")
+  conductor2Id   String?               @map("conductor2_id")
+  conductor3Id   String?               @map("conductor3_id")
+  numeroExtracto Int                   @default(1) @map("numero_extracto")
+  objetoViaje    String?               @map("objeto_viaje")
+  estadoCobro    EstadoCobro           @default(COBRADO) @map("estado_cobro")
+  modoPago       ModoPagoPlanilla      @default(EFECTIVO) @map("modo_pago")
+  obligacionId   String?               @unique @map("obligacion_id")
+  version        Int                   @default(0)
+  conductor1     Usuario               @relation("Conductor1", fields: [conductor1Id], references: [id])
+  conductor2     Usuario?              @relation("Conductor2", fields: [conductor2Id], references: [id])
+  conductor3     Usuario?              @relation("Conductor3", fields: [conductor3Id], references: [id])
+  contrato       ContratoEmpresa       @relation(fields: [contratoId], references: [id])
+  obligacion     ObligacionFinanciera? @relation("ObligacionPlanilla", fields: [obligacionId], references: [id])
+  resolucion     ResolucionFUEC        @relation(fields: [resolucionId], references: [id])
+  transaccion    Transaccion?          @relation("FUECTransaccion", fields: [transaccionId], references: [id])
+  vehiculo       Vehiculo              @relation("VehiculoFUEC", fields: [vehiculoId], references: [id])
+
+  @@index([consecutivo])
+  @@index([conductor1Id])
+  @@index([vehiculoId])
+  @@index([contratoId])
+  @@map("planillas_fuec")
+}
+
+model EventoCalendario {
+  id             String    @id @default(uuid())
+  titulo         String
+  descripcion    String?
+  fecha          DateTime
+  tipo           String    @default("NOTA")
+  prioridad      String    @default("MEDIA")
+  estado         String    @default("PENDIENTE")
+  ejecutado      Boolean   @default(false)
+  fechaEjecucion DateTime? @map("fechaEjecucion")
+  usuarioId      String    @map("usuario_id")
+  metadata       Json?     @default("{}")
+  creadoEn       DateTime  @default(now()) @map("created_at")
+  actualizadoEn  DateTime  @updatedAt @map("updated_at")
+  usuario        Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([fecha])
+  @@map("eventos_calendario")
+}
+
+model Proveedor {
+  id              String        @id @default(uuid())
+  nombres         String
+  razonSocial     String?       @map("razon_social")
+  tipoDocumento   TipoDocumento @default(NIT) @map("tipo_documento")
+  numeroDocumento String?       @unique @map("numero_documento")
+  celular         String?
+  email           String?
+  direccion       String?
+  ciudad          String?       @default("Sincelejo")
+  contacto        String?
+  activo          Boolean       @default(true)
+  creadoEn        DateTime      @default(now()) @map("created_at")
+  actualizadoEn   DateTime      @updatedAt @map("updated_at")
+  transacciones   Transaccion[] @relation("TransaccionesProveedor")
+
+  @@map("proveedores")
+}
+
+model ResolucionContable {
+  id               String          @id @default(uuid())
+  tipo             TipoTransaccion
+  prefijo          String?
+  numero           String
+  consecutivoDesde Int             @default(1)
+  consecutivoHasta Int
+  actual           Int             @default(0)
+  fechaInicio      DateTime
+  fechaFin         DateTime
+  activa           Boolean         @default(true)
+  creadoEn         DateTime        @default(now()) @map("created_at")
+  actualizadoEn    DateTime        @updatedAt @map("updated_at")
+
+  @@map("resoluciones_contables")
+}
+
+model ConsultaSIMIT {
+  id                String            @id @default(uuid())
+  conductorId       String?           @map("conductor_id")
+  vehiculoId        String?           @map("vehiculo_id")
+  criterio          String
+  fechaConsulta     DateTime          @default(now()) @map("fecha_consulta")
+  estadoCuenta      String            @default("SIN_NOVEDADES")
+  valorTotal        Decimal           @default(0) @db.Decimal(15, 2)
+  numeroComparendos Int               @default(0)
+  detalles          Json?
+  creadoEn          DateTime          @default(now()) @map("created_at")
+  actualizadoEn     DateTime          @updatedAt @map("updated_at")
+  comparendos       ComparendoSIMIT[]
+  conductor         Usuario?          @relation(fields: [conductorId], references: [id])
+  vehiculo          Vehiculo?         @relation(fields: [vehiculoId], references: [id])
+  novedades         Novedad[]         @relation("NovedadSIMIT")
+
+  @@index([conductorId])
+  @@index([vehiculoId])
+  @@index([fechaConsulta])
+  @@map("consultas_simit")
+}
+
+model ComparendoSIMIT {
+  id               String        @id @default(uuid())
+  consultaId       String        @map("consulta_id")
+  numeroComparendo String        @map("numero_comparendo")
+  fecha            DateTime
+  infraccion       String
+  valor            Decimal       @db.Decimal(15, 2)
+  estado           String
+  secretaria       String?
+  consulta         ConsultaSIMIT @relation(fields: [consultaId], references: [id], onDelete: Cascade)
+
+  @@index([consultaId])
+  @@map("comparendos_simit")
+}
+
+model Prestamo {
+  id                  String          @id @default(uuid())
+  usuarioId           String          @map("usuario_id")
+  tipo                TipoCredito     @default(LIBRE_INVERSION)
+  montoCapital        Decimal         @map("monto_capital") @db.Decimal(15, 2)
+  tasaMensual         Decimal         @map("tasa_mensual") @db.Decimal(5, 4)
+  numCuotas           Int             @map("num_cuotas")
+  diaPago             Int             @default(5) @map("dia_pago")
+  saldoActual         Decimal         @map("saldo_actual") @db.Decimal(15, 2)
+  estado              EstadoPrestamo  @default(PENDIENTE)
+  fechaSolicitud      DateTime        @default(now()) @map("fecha_solicitud")
+  fechaAprobacion     DateTime?       @map("fecha_aprobacion")
+  fechaDesembolso     DateTime?       @map("fecha_desembolso")
+  documentoFirmadoUrl String?         @map("documento_firmado_url")
+  observaciones       String?
+  creadoEn            DateTime        @default(now()) @map("created_at")
+  actualizadoEn       DateTime        @updatedAt @map("updated_at")
+  cuotas              CuotaPrestamo[]
+  usuario             Usuario         @relation("UsuarioPrestamo", fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([estado])
+  @@map("prestamos")
+}
+
+model CuotaPrestamo {
+  id               String      @id @default(uuid())
+  prestamoId       String      @map("prestamo_id")
+  numCuota         Int         @map("num_cuota")
+  fechaVencimiento DateTime    @map("fecha_vencimiento")
+  valorCapital     Decimal     @map("valor_capital") @db.Decimal(15, 2)
+  valorInteres     Decimal     @map("valor_interes") @db.Decimal(15, 2)
+  totalCuota       Decimal     @map("total_cuota") @db.Decimal(15, 2)
+  montoPagado      Decimal     @default(0) @map("monto_pagado") @db.Decimal(15, 2)
+  fechaPago        DateTime?   @map("fecha_pago")
+  estado           EstadoCuota @default(PENDIENTE)
+  prestamo         Prestamo    @relation(fields: [prestamoId], references: [id], onDelete: Cascade)
+
+  @@index([prestamoId])
+  @@index([estado, fechaVencimiento])
+  @@map("cuotas_prestamo")
+}
+
+enum GravedadSiniestro {
+  SOLO_DANOS
+  CON_HERIDOS
+  MORTAL
+}
+
+enum Rol {
+  ADMIN
+  CONDUCTOR
+  SECRETARIA
+  PROPIETARIO
+  COLABORADOR
+}
+
+enum Modalidad {
+  FLOTA_PROPIA
+  CONVENIO_EXTERNO
+}
+
+enum TipoDocumento {
+  CC
+  CE
+  PASAPORTE
+  NIT
+}
+
+enum ClaseVehiculo {
+  MICROBUS
+  CAMIONETA
+  OTRO
+  BUSETA
+  BUS
+}
+
+enum TipoNovedad {
+  MULTA
+  COMPARENDO
+  FALLA_MECANICA
+  CONDUCTA
+  OTRO
+}
+
+enum EstadoNovedad {
+  PENDIENTE
+  EN_PROCESO
+  RESUELTO
+  ANULADO
+}
+
+enum EstadoAlerta {
+  OK
+  POR_VENCER
+  VENCIDO
+}
+
+enum AccionAudit {
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  LOGIN
+  LOGOUT
+  EXPORTAR
+}
+
+enum FrecuenciaMantenimiento {
+  KILOMETROS
+  TIEMPO
+  AMBOS
+}
+
+enum EstadoOrdenServicio {
+  PENDIENTE
+  EN_REVISION
+  COMPLETADA
+  RECHAZADA
+  CANCELADA
+}
+
+enum TipoExamen {
+  INGRESO
+  PERIODICO
+  EGRESO
+  POST_INCAPACIDAD
+}
+
+enum ConceptoMedico {
+  APTO
+  APTO_CON_RESTRICCION
+  NO_APTO
+}
+
+enum EstadoPreoperacional {
+  APROBADO
+  RECHAZADO
+}
+
+enum EstadoSiniestro {
+  PENDIENTE
+  EN_PROCESO
+  CERRADO
+}
+
+enum NivelCriticidad {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+enum NaturalezaCuenta {
+  DEBITO
+  CREDITO
+}
+
+enum TipoCuenta {
+  ACTIVO
+  PASIVO
+  PATRIMONIO
+  INGRESO
+  GASTO
+}
+
+enum TipoTransaccion {
+  INGRESO
+  EGRESO
+  NOTA_CONTABLE
+}
+
+enum TipoObligacion {
+  CUOTA_ADMINISTRACION
+  MULTA
+  APORTE
+  OTRO
+  PRESTAMO
+  PLANILLA_FUEC
+  DOTACION
+}
+
+enum EstadoObligacion {
+  PENDIENTE
+  PAGADO
+  ANULADO
+  VENCIDO
+}
+
+enum EstadoOperativo {
+  EVALUANDO
+  OPERATIVO
+  OPERATIVO_CON_ALERTAS
+  NO_OPERATIVO
+  BLOQUEADO_ADMIN
+  OPERATIVO_OVERRIDE
+}
+
+enum EstadoFUEC {
+  ACTIVO
+  ANULADO
+  VENCIDO
+}
+
+enum ModoPagoPlanilla {
+  EFECTIVO
+  CREDITO
+}
+
+enum EstadoCobro {
+  COBRADO
+  PENDIENTE
+  EN_MORA
+}
+
+enum EstadoPrestamo {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  DESEMBOLSADO
+  EN_MORA
+  CANCELADO
+}
+
+enum TipoCredito {
+  LIBRE_INVERSION
+  VIVIENDA
+  SALUD
+  EDUCACION
+  MOTO_VEHICULO
+  OTRO
+  FLEXIBLE_DIARIO
+}
+
+enum EstadoCuota {
+  PENDIENTE
+  PAGADA
+  VENCIDA
+  PARCIAL
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  CHEQUE
+  OTRO
+}

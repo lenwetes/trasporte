@@ -1,0 +1,37 @@
+# Rediseño del Expediente de Vehículos
+
+El objetivo es transformar la vista de detalles del vehículo (`vehiculos/[id]`) para que utilice el mismo sistema centralizado, eficiente y estético (Zenith Professional Indigo) que el expediente de conductores.
+
+## Cambios Propuestos
+
+### Componentes y Páginas
+
+#### [MODIFY] [src/app/dashboard/vehiculos/[id]/page.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/page.tsx)
+- Se eliminará el actual diseño de columnas divididas (Grid 4/8).
+- Se implementará un contenedor de ancho completo (`max-w-[1600px]`) con el fondo ambiental (`bg-gradient-to-b`) similar al de conductores.
+- Se delegará toda la renderización de la cabecera y el cuerpo al [VehicleDetailsClient](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx#25-175), pasándole únicamente los datos obtenidos.
+
+#### [MODIFY] [src/app/dashboard/vehiculos/[id]/_components/vehicle-details-client.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx)
+- **Nueva Cabecera Principal (Header):** Se añadirá el bloque superior masivo que incluye:
+  - Un bloque de "Avatar/Icono" con gradiente y la inicial de la placa o un ícono de vehículo.
+  - Título principal con la Placa y un badge para la Modalidad.
+  - Badges de información rápida (Marca, Modelo, Año).
+  - Bloque de "Operando Ahora": Mostrará el conductor activo actual si existe una vinculación activa.
+  - Botones de acción estandarizados (Volver, Editar Datos).
+- **Rediseño de Tabs:** Se actualizará el `TabsList` para usar el diseño horizontal con scroll (Zenith style) que utiliza `TabsTrigger` en mayúsculas, con espaciado ancho (`tracking-widest`) e íconos (`lucide-react`).
+- **Nuevas Pestañas:**
+  - `General`: Una nueva pestaña que agrupará la información general, el `OperabilityControlPanel` y los datos que antes estaban en el [VehicleInfoCard](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-info-card.tsx#11-104).
+  - `Conductores`, `Mantenimiento`, `Siniestros`, `Inspecciones`, `Documentos`: Se mantendrán pero se adaptarán al nuevo contenedor.
+
+#### [NEW] `src/app/dashboard/vehiculos/[id]/_components/general-tab.tsx`
+- Se creará este nuevo componente para alivianar [vehicle-details-client.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx).
+- Contendrá el `OperabilityControlPanel` (panel de bloqueo/estado operativo) y widgets de información general del vehículo (propietario, estadísticas rápidas de documentos y vinculaciones).
+
+## Verificación
+
+### Verificación Manual
+1. Navegar a `/dashboard/vehiculos` y hacer clic en cualquier vehículo de la flota.
+2. Verificar que se renderiza el nuevo "Header" masivo y que la información visual (placa, badges, botón de volver) coincide exactamente con el estilo de conductores.
+3. Verificar que si el vehículo tiene un conductor asignado actualmente, aparezca correctamente en el bloque de "Operando Ahora".
+4. Hacer clic por todas las pestañas (General, Documentos, Conductores, etc.) para asegurar que el contenido se renderiza sin errores y que las URLs se actualizan (`?tab=...`).
+5. Validar que el botón de bloquear/desbloquear vehículo en la pestaña "General" sigue funcionando correctamente.

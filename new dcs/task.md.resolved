@@ -1,0 +1,8 @@
+# Task List
+
+- [x] Analyze [vehicle-details-client.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx) and compare with [conductor-expediente-client.tsx](file:///c:/web/web/src/app/dashboard/conductores/%5Bid%5D/_components/conductor-expediente-client.tsx)
+- [x] Create missing tabs or reorganize existing components (Creating [general-tab.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/general-tab.tsx))
+- [x] Update [vehicle-details-client.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx) header to use the Zenith styling (gradient, large text, badges, back button, edit button)
+- [x] Implement URL-based tab state in [vehicle-details-client.tsx](file:///c:/web/web/src/app/dashboard/vehiculos/%5Bid%5D/_components/vehicle-details-client.tsx)
+- [x] Update `TabsList` and `TabsTrigger` to the custom Zenith styled horizontal scrolling list
+- [x] Pass necessary props and data and verify nothing breaks

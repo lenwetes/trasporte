@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #F4F4F4;
+  --color-foreground: #005461;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #005461;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #005461;
+  --color-primary: #005461;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #018790;
+  --color-secondary-foreground: #FFFFFF;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #1E293B;
+  --color-accent: #00B7B5;
+  --color-accent-foreground: #005461;
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #005461;
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
+  --shadow-premium: 0 20px 50px -12px rgba(0, 84, 97, 0.25);
+  --shadow-premium-hover: 0 30px 60px -12px rgba(0, 84, 97, 0.4);
+}
+
+@layer base {
+  :root {
+    --background: 189 20% 96%;
+    --foreground: 189 100% 19%;
+    --card: 0 0% 100%;
+    --card-foreground: 189 100% 19%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 189 100% 19%;
+    --primary: 189 100% 19%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 184 99% 28%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 25% 20%;
+    --accent: 179 100% 36%;
+    --accent-foreground: 189 100% 19%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 189 100% 19%;
+    --radius: 0px;
+
+    --shadow-premium: 0 20px 50px -12px rgba(0, 84, 97, 0.25);
+    --shadow-premium-hover: 0 30px 60px -12px rgba(0, 84, 97, 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html, body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@layer utilities {
+  .btn-coopetraes {
+    @apply h-14 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-8 
+           shadow-premium transition-all duration-300 
+           hover:shadow-premium-hover hover:-translate-y-0.5 
+           active:translate-y-0 active:shadow-none
+           flex items-center justify-center gap-3 rounded-none;
+  }
+}

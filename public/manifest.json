@@ -1,0 +1,16 @@
+{
+    "name": "Coopetraes App",
+    "short_name": "Coopetraes",
+    "description": "Gestión integral de transporte y flota para Coopetraes",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#10b981",
+    "icons": [
+        {
+            "src": "/logo-empresa.png",
+            "sizes": "any",
+            "type": "image/png"
+        }
+    ]
+}
