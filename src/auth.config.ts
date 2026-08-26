@@ -8,21 +8,17 @@ export const authConfig = {
         process.env.AUTH_SECRET ||
         process.env.NEXTAUTH_SECRET ||
         "coopetraes_fallback_auth_secret_32_chars_long",
-    providers: [
-        // We leave Credentials empty here, it will be handled in the main auth.ts
-        Credentials({
-            async authorize() {
-                return null;
-            },
-        }),
-    ],
+    providers: [],
     pages: {
         signIn: "/login",
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
-            const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+            const isApiAuthRoute =
+                nextUrl.pathname.startsWith("/api/auth") ||
+                nextUrl.pathname === "/api/init" ||
+                nextUrl.pathname === "/api/health";
             const isPublicRoute = [
                 "/",
                 "/login",
@@ -31,6 +27,8 @@ export const authConfig = {
                 "/favicon.ico",
                 "/robots.txt",
                 "/logo-empresa.png",
+                "/api/init",
+                "/api/health",
             ].includes(nextUrl.pathname);
             const isAuthRoute = ["/login", "/registro"].includes(
                 nextUrl.pathname,
