@@ -18,12 +18,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Variables para la fase de compilación
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
+ENV DATABASE_URL "postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+ENV NEXTAUTH_SECRET "dummy_build_secret_key_1234567890123456"
+ENV NEXTAUTH_URL "http://localhost:3000"
+
 # Generar cliente de Prisma
 RUN npx prisma generate
 
-# Desactivar telemetría y compilar Next.js en modo Standalone
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
+# Compilar Next.js en modo Standalone
 RUN npm run build
 
 # ==========================================

@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = [
+  "npx prisma generate",
+  "DATABASE_URL=\"postgresql://dummy:dummy@localhost:5432/dummy?schema=public\" NEXTAUTH_SECRET=\"dummy_build_secret_12345\" NEXTAUTH_URL=\"http://localhost:3000\" npm run build"
+]
+
+[start]
+cmd = "npx prisma migrate deploy || npx prisma db push --skip-generate; node server.js"
