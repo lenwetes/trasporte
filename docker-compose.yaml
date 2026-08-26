@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coopetraes_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      # Base de datos PostgreSQL (recurso externo en Coolify)
+      DATABASE_URL: "postgres://postgres:Eduardo0429..@4jbmth8idiqmqoohjowmxbuf:5432/postgres?schema=public"
+      # Redis (recurso externo en Coolify)
+      REDIS_URL: "redis://default:Eduardo0429..@xcjfn8d0qyoupv7ligz7jco9:6379/0"
+      CACHE_PROVIDER: "REDIS"
+      # Autenticación
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
+      AUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
+      NEXTAUTH_URL: "https://app.coopetraes.com"
+      NEXT_PUBLIC_APP_URL: "https://app.coopetraes.com"
+      # Almacenamiento
+      UPLOAD_DIR: "/app/uploads"
+      STORAGE_PATH: "/app/storage"
+      # Seed automático al iniciar (crea admin y datos base)
+      SEED_ON_START: "true"
+    volumes:
+      - uploads_data:/app/uploads
+      - storage_data:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  uploads_data:
+  storage_data:
