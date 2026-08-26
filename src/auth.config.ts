@@ -3,6 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 
 // This is the Edge-compatible part of the configuration
 export const authConfig = {
+    trustHost: true,
+    secret:
+        process.env.AUTH_SECRET ||
+        process.env.NEXTAUTH_SECRET ||
+        "coopetraes_fallback_auth_secret_32_chars_long",
     providers: [
         // We leave Credentials empty here, it will be handled in the main auth.ts
         Credentials({

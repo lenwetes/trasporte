@@ -38,53 +38,58 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Credentials({
             async authorize(credentials) {
-                console.log("LOGIN_DEBUG: Inicia authorize para", credentials?.email);
-                const validatedFields = LoginSchema.safeParse(credentials);
+                try {
+                    console.log("LOGIN_DEBUG: Inicia authorize para", credentials?.email);
+                    const validatedFields = LoginSchema.safeParse(credentials);
 
-                if (validatedFields.success) {
-                    const { email: rawEmail, password } = validatedFields.data;
-                    const email = rawEmail.toLowerCase();
+                    if (validatedFields.success) {
+                        const { email: rawEmail, password } = validatedFields.data;
+                        const email = rawEmail.toLowerCase();
 
-                    const user = await prisma.usuario.findUnique({
-                        where: {
-                            email,
-                            activo: true, // Block inactive users
-                        },
-                        include: { fotoPerfil: true },
-                    });
+                        const user = await prisma.usuario.findUnique({
+                            where: {
+                                email,
+                                activo: true, // Block inactive users
+                            },
+                            include: { fotoPerfil: true },
+                        });
 
-                    if (!user) {
-                        console.log("LOGIN_DEBUG: Usuario no encontrado:", email);
-                        return null;
+                        if (!user) {
+                            console.log("LOGIN_DEBUG: Usuario no encontrado:", email);
+                            return null;
+                        }
+
+                        if (!user.passwordHash) {
+                            console.log("LOGIN_DEBUG: Usuario sin hash de password");
+                            return null;
+                        }
+
+                        const passwordsMatch = await verify(
+                            user.passwordHash,
+                            password,
+                        );
+
+                        console.log("LOGIN_DEBUG: Coincidencia de password:", passwordsMatch);
+
+                        if (passwordsMatch)
+                            return {
+                                id: user.id,
+                                email: user.email,
+                                name: `${user.nombres} ${user.apellidos}`,
+                                rol: user.rol,
+                                image: user.fotoPerfil
+                                    ? `/api/files/${user.fotoPerfil.nombreUnico}`
+                                    : null,
+                            };
+                    } else {
+                        console.log("LOGIN_DEBUG: Error de validación Zod:", validatedFields.error.format());
                     }
 
-                    if (!user.passwordHash) {
-                        console.log("LOGIN_DEBUG: Usuario sin hash de password");
-                        return null;
-                    }
-
-                    const passwordsMatch = await verify(
-                        user.passwordHash,
-                        password,
-                    );
-
-                    console.log("LOGIN_DEBUG: Coincidencia de password:", passwordsMatch);
-
-                    if (passwordsMatch)
-                        return {
-                            id: user.id,
-                            email: user.email,
-                            name: `${user.nombres} ${user.apellidos}`,
-                            rol: user.rol,
-                            image: user.fotoPerfil
-                                ? `/api/files/${user.fotoPerfil.nombreUnico}`
-                                : null,
-                        };
-                } else {
-                    console.log("LOGIN_DEBUG: Error de validación Zod:", validatedFields.error.format());
+                    return null;
+                } catch (error) {
+                    console.error("LOGIN_ERROR:", error);
+                    return null;
                 }
-
-                return null;
             },
         }),
     ],
