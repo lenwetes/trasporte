@@ -2,7 +2,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validations";
-import { verify } from "argon2";
+import { verify, hash } from "argon2";
 import { type JWT } from "next-auth/jwt"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { authConfig } from "./auth.config";
 import logger from "@/lib/logger";
@@ -46,7 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         const { email: rawEmail, password } = validatedFields.data;
                         const email = rawEmail.toLowerCase();
 
-                        const user = await prisma.usuario.findUnique({
+                        let user = await prisma.usuario.findUnique({
                             where: {
                                 email,
                                 activo: true, // Block inactive users
@@ -55,8 +55,52 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         });
 
                         if (!user) {
-                            console.log("LOGIN_DEBUG: Usuario no encontrado:", email);
-                            return null;
+                            const totalUsers = await prisma.usuario.count().catch(() => 0);
+                            if (
+                                totalUsers === 0 &&
+                                email === "admin@admin.com" &&
+                                password === "admin"
+                            ) {
+                                console.log(
+                                    "AUTO-INIT: Base de datos vacía. Creando usuario administrador inicial...",
+                                );
+                                const adminPasswordHash = await hash("admin");
+                                user = await prisma.usuario.create({
+                                    data: {
+                                        email: "admin@admin.com",
+                                        nombres: "Administrador",
+                                        apellidos: "Sistema",
+                                        passwordHash: adminPasswordHash,
+                                        rol: "ADMIN",
+                                        tipoDocumento: "CC",
+                                        numeroDocumento: "1111111111",
+                                        activo: true,
+                                    },
+                                    include: { fotoPerfil: true },
+                                });
+
+                                await prisma.configuracionGlobal
+                                    .upsert({
+                                        where: { id: "default" },
+                                        update: {},
+                                        create: {
+                                            id: "default",
+                                            nombreEmpresa: "COOPETRAES S.A.",
+                                            direccion:
+                                                "Calle Principal #45-20, Sincelejo",
+                                            telefono: "6052820000",
+                                            email: "gerencia@coopetraes.com",
+                                            colorPrimario: "#00704f",
+                                        },
+                                    })
+                                    .catch(() => {});
+                            } else {
+                                console.log(
+                                    "LOGIN_DEBUG: Usuario no encontrado:",
+                                    email,
+                                );
+                                return null;
+                            }
                         }
 
                         if (!user.passwordHash) {
