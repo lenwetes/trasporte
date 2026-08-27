@@ -185,7 +185,7 @@ export function PropietarioDashboard({
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/dashboard/docs" className="text-[10px] font-bold text-white/70 hover:text-white hover:pl-2 transition-all flex items-center gap-2">
+                                    <Link href="/dashboard/gestion-documental" className="text-[10px] font-bold text-white/70 hover:text-white hover:pl-2 transition-all flex items-center gap-2">
                                         <div className="h-1 w-1 bg-accent" /> ARCHIVO DOCUMENTAL
                                     </Link>
                                 </li>

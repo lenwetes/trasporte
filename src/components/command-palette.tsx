@@ -12,7 +12,7 @@ export function GlobalSearch({ userRole }: { userRole?: string }) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
-            router.push(`/dashboard/search?q=${encodeURIComponent(query)}`);
+            router.push(`/dashboard/vehiculos?search=${encodeURIComponent(query)}`);
             setOpen(false);
             setQuery("");
         }

@@ -134,7 +134,7 @@ export class SearchService {
                             type: "order" as const,
                             title: `Orden ${o.codigo}`,
                             subtitle: `Vehículo: ${o.vehiculo.placa} - Estado: ${o.estado}`,
-                            url: `/dashboard/mantenimiento/ordenes/${o.id}`, // Asumiendo ruta, validar
+                            url: `/dashboard/mantenimiento?tab=operaciones&codigo=${encodeURIComponent(o.codigo)}`,
                         })),
                     ),
             );
