@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Zap, Database } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Database, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function HomeContent() {
+interface HomeContentProps {
+    isLoggedIn?: boolean;
+}
+
+export function HomeContent({ isLoggedIn = false }: HomeContentProps) {
     return (
         <main className="min-h-[calc(100vh-80px)] bg-slate-50 flex items-center relative overflow-hidden font-sans">
             {/* Intel Grid Background */}
@@ -33,9 +37,17 @@ export function HomeContent() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                        <Link href="/login">
+                        <Link href={isLoggedIn ? "/dashboard" : "/login"}>
                             <Button className="h-14 w-full sm:w-auto px-8 rounded-none bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-[11px] gap-3 transition-all shadow-xl hover:shadow-primary/20">
-                                Iniciar Sincronización <ArrowRight className="h-5 w-5 text-accent" />
+                                {isLoggedIn ? (
+                                    <>
+                                        Panel de Control <LayoutDashboard className="h-5 w-5 text-accent" />
+                                    </>
+                                ) : (
+                                    <>
+                                        Iniciar Sincronización <ArrowRight className="h-5 w-5 text-accent" />
+                                    </>
+                                )}
                             </Button>
                         </Link>
                         <Button variant="outline" className="h-14 w-full sm:w-auto px-8 rounded-none border-primary/20 hover:bg-primary/5 text-primary font-black uppercase tracking-widest text-[11px] transition-all">

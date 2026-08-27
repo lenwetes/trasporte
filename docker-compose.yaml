@@ -71,12 +71,13 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       CACHE_PROVIDER: ${CACHE_PROVIDER:-REDIS}
 
-      # Autenticación NextAuth / Auth.js
+      # Autenticación NextAuth / Auth.js (Con soporte dinámico de dominio y reverse-proxy en Coolify)
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-coopetraes_auth_secure_secret_production_2026_x89q}
       AUTH_SECRET: ${AUTH_SECRET:-coopetraes_auth_secure_secret_production_2026_x89q}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-}
+      AUTH_URL: ${AUTH_URL:-}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-}
 
       # Usuario Administrador Automático
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@coopetraes.com}
