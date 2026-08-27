@@ -1,34 +1,98 @@
 version: "3.8"
 
 services:
+  # ==========================================
+  # Servicio 1: Base de Datos PostgreSQL
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: coopetraes_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_secure_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-coopetraes}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - coopetraes_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-coopetraes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================
+  # Servicio 2: Servidor de Caché y Colas Redis
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: coopetraes_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - coopetraes_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ==========================================
+  # Servicio 3: Aplicación Principal Next.js
+  # ==========================================
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: coopetraes_app
-    restart: always
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
-      # PostgreSQL externo de Coolify
-      DATABASE_URL: "postgres://postgres:Eduardo0429..@postgres:5432/postgres?schema=public"
-      # Redis deshabilitado - la app usa caché en memoria como fallback
-      # REDIS_URL: ""
-      CACHE_PROVIDER: "MEMORY"
-      # Autenticación
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+
+      # Base de Datos (Conexión interna en la misma red)
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password_secure_2026}@postgres:5432/${POSTGRES_DB:-coopetraes}?schema=public}
+
+      # Redis y Caché
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      CACHE_PROVIDER: ${CACHE_PROVIDER:-REDIS}
+
+      # Autenticación NextAuth / Auth.js
       AUTH_TRUST_HOST: "true"
-      NEXTAUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
-      AUTH_SECRET: "coopetraes_auth_secure_secret_production_2026_x89q"
-      NEXTAUTH_URL: "https://app.coopetraes.com"
-      NEXT_PUBLIC_APP_URL: "https://app.coopetraes.com"
-      # Almacenamiento
-      UPLOAD_DIR: "/app/uploads"
-      STORAGE_PATH: "/app/storage"
-      SEED_ON_START: "true"
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-coopetraes_auth_secure_secret_production_2026_x89q}
+      AUTH_SECRET: ${AUTH_SECRET:-coopetraes_auth_secure_secret_production_2026_x89q}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+
+      # Usuario Administrador Automático
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@coopetraes.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_NOMBRES: ${ADMIN_NOMBRES:-Administrador}
+      ADMIN_APELLIDOS: ${ADMIN_APELLIDOS:-Sistema}
+
+      # Almacenamiento local de archivos
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-LOCAL}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      STORAGE_PATH: ${STORAGE_PATH:-/app/storage}
     volumes:
       - uploads_data:/app/uploads
       - storage_data:/app/storage
+    networks:
+      - coopetraes_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -36,6 +100,18 @@ services:
       retries: 3
       start_period: 60s
 
+# ==========================================
+# Red común para todos los servicios
+# ==========================================
+networks:
+  coopetraes_network:
+    driver: bridge
+
+# ==========================================
+# Volúmenes persistentes
+# ==========================================
 volumes:
+  postgres_data:
+  redis_data:
   uploads_data:
   storage_data:

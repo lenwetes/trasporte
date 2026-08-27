@@ -43,20 +43,22 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Crear usuario y grupo de ejecución segura
+# Crear usuario y grupo de ejecución segura con su directorio home
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 --home /home/nextjs nextjs && \
+    mkdir -p /home/nextjs && chown -R nextjs:nodejs /home/nextjs
 
 # Copiar archivos estáticos y cliente standalone
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copiar configuración de Prisma y migraciones para el entrypoint
+# Copiar configuración de Prisma, scripts y package.json
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Script de entrada para migraciones automáticas en Coolify
+# Script de entrada para migraciones e inicialización automática en Coolify
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
